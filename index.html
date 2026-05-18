@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Traffic &amp; SEO Command Centre</title>
+  <title>Traffic & SEO Command Centre</title>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
@@ -23,8 +23,10 @@
   <div id="root"></div>
   <script type="text/babel">
     const { useState, useEffect, useCallback, useRef } = React;
+
     const CLIENT_ID = "9421719907-i8rgd7cun29dm5btn5cr23uubi9805k4.apps.googleusercontent.com";
     const SCOPES = "https://www.googleapis.com/auth/analytics.readonly https://www.googleapis.com/auth/webmasters.readonly";
+
     const DEFAULT_SITES = [
       {
         id: "site1", label: "My Website 1", ga4Id: "", gscUrl: "",
@@ -35,21 +37,25 @@
         colors: { primary: "#697357", accent: "#A94E14", accentLight: "#EBDAD4", bg: "#EBDAD4", mid: "#697357", muted: "#D59983", chartColors: ["#697357", "#A94E14", "#D39540", "#D59983", "#EBDAD4"], badge3: "#697357", badge10: "#A94E14", badge20: "#D39540" }
       },
     ];
+
     const PERIODS = [
       { label: "7 days", days: 7 },
       { label: "30 days", days: 30 },
       { label: "90 days", days: 90 },
       { label: "Custom", days: null },
     ];
+
     const sourceNames = ["Organic Search", "Direct", "Organic Social", "Referral", "Unassigned"];
     const sourceLabels = ["Organic", "Direct", "Social", "Referral", "Other"];
     const QUESTION_WORDS = ["how", "what", "why", "when", "who", "where", "which", "can", "does", "is", "are", "should"];
+
     function getDateRange(days, customFrom, customTo) {
       const to = new Date(), from = new Date();
       if (days) { from.setDate(to.getDate() - days); }
       else { return { startDate: customFrom || "2024-01-01", endDate: customTo || to.toISOString().split("T")[0] }; }
       return { startDate: from.toISOString().split("T")[0], endDate: to.toISOString().split("T")[0] };
     }
+
     function exportCSV(filename, headers, rows) {
       const csv = [headers.join(","), ...rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(","))].join("\n");
       const blob = new Blob([csv], { type: "text/csv" });
@@ -57,17 +63,21 @@
       const a = document.createElement("a"); a.href = url; a.download = filename; a.click();
       URL.revokeObjectURL(url);
     }
+
     const iStyle = { width: "100%", padding: "10px 12px", borderRadius: 8, border: "1.5px solid #e2e8f0", fontSize: 14, color: "#1e293b", outline: "none", boxSizing: "border-box", background: "#fff" };
     const bStyle = { padding: "10px 18px", borderRadius: 8, border: "none", cursor: "pointer", fontSize: 14, fontWeight: 600 };
+
     function TrendIcon({ trend }) {
-      if (trend === 1) return <span style={{ color: "#22c55e", fontWeight: 700 }}>&#8593;</span>;
-      if (trend === -1) return <span style={{ color: "#ef4444", fontWeight: 700 }}>&#8595;</span>;
-      return <span style={{ color: "#94a3b8" }}>&#8594;</span>;
+      if (trend === 1) return <span style={{ color: "#22c55e", fontWeight: 700 }}>↑</span>;
+      if (trend === -1) return <span style={{ color: "#ef4444", fontWeight: 700 }}>↓</span>;
+      return <span style={{ color: "#94a3b8" }}>→</span>;
     }
+
     function PosBadge({ pos, colors }) {
       const bg = pos <= 3 ? colors.badge3 : pos <= 10 ? colors.badge10 : pos <= 20 ? colors.badge20 : "#94a3b8";
       return <span style={{ background: bg, color: "#fff", borderRadius: 6, padding: "2px 8px", fontSize: 12, fontWeight: 700 }}>{typeof pos === "number" ? pos.toFixed(1) : pos}</span>;
     }
+
     function DonutChart({ data }) {
       const total = data.reduce((s, d) => s + d.value, 0);
       if (!total) return <p style={{ color: "#94a3b8", fontSize: 13 }}>No data available</p>;
@@ -97,6 +107,7 @@
         </div>
       );
     }
+
     function MiniBar({ pct, color }) {
       return (
         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
@@ -107,9 +118,11 @@
         </div>
       );
     }
+
     function Card({ children, c, style = {} }) {
       return <div style={{ background: "#fff", borderRadius: 12, border: `1px solid ${c.accentLight}`, ...style }}>{children}</div>;
     }
+
     function TableHead({ cols, c }) {
       return (
         <thead>
@@ -119,9 +132,11 @@
         </thead>
       );
     }
+
     function EmptyRow({ cols, msg }) {
       return <tr><td colSpan={cols} style={{ padding: 24, textAlign: "center", color: "#94a3b8", fontSize: 13 }}>{msg}</td></tr>;
     }
+
     function SectionHeader({ title, sub, c, onExport }) {
       return (
         <div style={{ padding: "16px 24px", background: c.primary, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
@@ -129,19 +144,22 @@
             <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: "#fff" }}>{title}</h3>
             {sub && <p style={{ margin: "3px 0 0", fontSize: 13, color: c.muted }}>{sub}</p>}
           </div>
-          {onExport && <button onClick={onExport} style={{ ...bStyle, background: "rgba(255,255,255,0.15)", color: "#fff", fontSize: 12, padding: "6px 14px" }}>&#11015; Export CSV</button>}
+          {onExport && <button onClick={onExport} style={{ ...bStyle, background: "rgba(255,255,255,0.15)", color: "#fff", fontSize: 12, padding: "6px 14px" }}>⬇ Export CSV</button>}
         </div>
       );
     }
+
+    // Settings Panel
     function SettingsPanel({ sites, onSave, onClose, c }) {
       const [draft, setDraft] = useState(sites.map(s => ({ ...s, colors: { ...s.colors } })));
       const update = (i, field, val) => setDraft(prev => prev.map((s, idx) => idx === i ? { ...s, [field]: val } : s));
       const updateColor = (i, key, val) => setDraft(prev => prev.map((s, idx) => idx === i ? { ...s, colors: { ...s.colors, [key]: val } } : s));
+
       return (
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
           <div style={{ background: "#fff", borderRadius: 16, width: "100%", maxWidth: 640, maxHeight: "90vh", overflowY: "auto", boxShadow: "0 25px 60px rgba(0,0,0,0.2)" }}>
             <div style={{ padding: "24px 24px 0" }}>
-              <h2 style={{ fontSize: 20, fontWeight: 800, color: "#1e293b", margin: "0 0 4px" }}>&#9881;&#65039; Dashboard Settings</h2>
+              <h2 style={{ fontSize: 20, fontWeight: 800, color: "#1e293b", margin: "0 0 4px" }}>⚙️ Dashboard Settings</h2>
               <p style={{ fontSize: 14, color: "#64748b", margin: "0 0 24px" }}>Customise your site names, GA4 IDs, GSC URLs, and brand colours.</p>
             </div>
             {draft.map((s, i) => (
@@ -170,8 +188,8 @@
                     { key: "bg", label: "Background" },
                     { key: "mid", label: "Mid tone" },
                     { key: "muted", label: "Muted" },
-                    { key: "badge3", label: "Badge 1-3" },
-                    { key: "badge10", label: "Badge 4-10" },
+                    { key: "badge3", label: "Badge 1–3" },
+                    { key: "badge10", label: "Badge 4–10" },
                   ].map(({ key, label }) => (
                     <div key={key} style={{ display: "flex", flexDirection: "column", gap: 4, alignItems: "center" }}>
                       <input type="color" value={s.colors[key]} onChange={e => updateColor(i, key, e.target.value)}
@@ -196,6 +214,7 @@
         </div>
       );
     }
+
     function TrafficGraph({ data, color }) {
       if (!data || data.length < 2) return null;
       const max = Math.max(...data.map(d => d.sessions));
@@ -246,6 +265,7 @@
         </div>
       );
     }
+
     function Sparkline({ data, color }) {
       if (!data || data.length < 2) return null;
       const max = Math.max(...data), min = Math.min(...data), range = max - min || 1;
@@ -261,7 +281,8 @@
         </div>
       );
     }
-    function Dashboard() {
+
+    
       const [sites, setSites] = useState(() => {
         try { return JSON.parse(localStorage.getItem("dashSites") || "null") || DEFAULT_SITES; } catch { return DEFAULT_SITES; }
       });
@@ -275,11 +296,13 @@
       const [kwSort, setKwSort] = useState("clicks");
       const [authToken, setAuthToken] = useState(null);
       const [loading, setLoading] = useState(false);
+      const [sectionLoading, setSectionLoading] = useState({});
       const [error, setError] = useState(null);
       const [data, setData] = useState(null);
       const [gsiReady, setGsiReady] = useState(false);
       const [showSettings, setShowSettings] = useState(false);
       const tokenClientRef = useRef(null);
+
       const [trackedKws, setTrackedKws] = useState(() => {
         try { return JSON.parse(localStorage.getItem("trackedKws") || '{"site1":[],"site2":[]}'); } catch { return { site1: [], site2: [] }; }
       });
@@ -293,12 +316,15 @@
         try { return JSON.parse(localStorage.getItem("aiCitations") || '{"site1":[],"site2":[]}'); } catch { return { site1: [], site2: [] }; }
       });
       const [citationInput, setCitationInput] = useState({ url: "", tool: "ChatGPT", query: "", date: "" });
+
       const site = sites[activeSite];
       const c = site.colors;
       const siteKey = site.id;
+
       useEffect(() => { localStorage.setItem("dashSites", JSON.stringify(sites)); }, [sites]);
       useEffect(() => { localStorage.setItem("trackedKws", JSON.stringify(trackedKws)); }, [trackedKws]);
       useEffect(() => { localStorage.setItem("aiCitations", JSON.stringify(citations)); }, [citations]);
+
       useEffect(() => {
         let attempts = 0;
         const init = () => {
@@ -313,6 +339,7 @@
         };
         setTimeout(init, 500);
       }, []);
+
       const gscQuery = useCallback(async (token, gscUrl, body) => {
         const res = await fetch(`https://searchconsole.googleapis.com/webmasters/v3/sites/${encodeURIComponent(gscUrl)}/searchAnalytics/query`, {
           method: "POST", headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
@@ -320,6 +347,7 @@
         });
         return res.json();
       }, []);
+
       const ga4Query = useCallback(async (token, ga4Id, body) => {
         const res = await fetch(`https://analyticsdata.googleapis.com/v1beta/properties/${ga4Id}:runReport`, {
           method: "POST", headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
@@ -327,7 +355,9 @@
         });
         return res.json();
       }, []);
+
       const normaliseUrl = (url) => url.toLowerCase().replace(/\/$/, "") || "/";
+
       const fetchData = useCallback(async (token, siteIdx, periodIdx, cFrom, cTo) => {
         setLoading(true); setError(null); setData(null);
         const s = sites[siteIdx];
@@ -341,7 +371,9 @@
         const prevStart = new Date(prevEnd); prevStart.setDate(prevStart.getDate() - daysDiff);
         const prevStartStr = prevStart.toISOString().split("T")[0];
         const prevEndStr = prevEnd.toISOString().split("T")[0];
+
         try {
+          // Daily traffic for graph
           const dailyJson = await ga4Query(token, s.ga4Id, {
             dateRanges: [{ startDate, endDate }],
             dimensions: [{ name: "date" }],
@@ -352,6 +384,8 @@
             date: r.dimensionValues[0].value,
             sessions: parseInt(r.metricValues[0].value)
           }));
+
+          // Summary
           const sumJson = await ga4Query(token, s.ga4Id, {
             dateRanges: [{ startDate, endDate }, { startDate: prevStartStr, endDate: prevEndStr }],
             metrics: [{ name: "sessions" }, { name: "bounceRate" }, { name: "averageSessionDuration" }, { name: "newUsers" }, { name: "totalUsers" }],
@@ -365,6 +399,8 @@
           const totalUsers = parseInt(mv[4]?.value || 1);
           const avgTime = `${Math.floor(avgDur / 60)}:${String(avgDur % 60).padStart(2, "0")}`;
           const newPct = Math.round((newUsers / totalUsers) * 100);
+
+          // Sources
           const srcJson = await ga4Query(token, s.ga4Id, {
             dateRanges: [{ startDate, endDate }],
             dimensions: [{ name: "sessionDefaultChannelGroup" }],
@@ -374,6 +410,8 @@
           const srcMap = {};
           (srcJson.rows || []).forEach(r => { srcMap[r.dimensionValues[0].value] = parseInt(r.metricValues[0].value); });
           const sources = sourceNames.map((n, i) => ({ name: sourceLabels[i], value: srcMap[n] || 0, color: s.colors.chartColors[i] })).filter(x => x.value > 0);
+
+          // Pages with dedup
           const pgJson = await ga4Query(token, s.ga4Id, {
             dateRanges: [{ startDate, endDate }, { startDate: prevStartStr, endDate: prevEndStr }],
             dimensions: [{ name: "pagePath" }],
@@ -381,6 +419,7 @@
             orderBys: [{ metric: { metricName: "sessions" }, desc: true }],
             limit: 25,
           });
+
           const pageMap = {};
           (pgJson.rows || []).forEach(r => {
             const url = normaliseUrl(r.dimensionValues[0].value);
@@ -391,27 +430,19 @@
             pageMap[url].durSum += parseInt(r.metricValues[2].value);
             pageMap[url].count += 1;
           });
+
           const mergedPages = Object.values(pageMap).sort((a, b) => b.currSessions - a.currSessions).slice(0, 20);
+
           const pages = await Promise.all(mergedPages.map(async ({ url, currSessions, prevSessions, bounceSum, durSum, count }) => {
             const bounce = (bounceSum / count).toFixed(1);
             const dur = Math.round(durSum / count);
             const trend = currSessions > prevSessions * 1.05 ? 1 : currSessions < prevSessions * 0.95 ? -1 : 0;
             const decayPct = prevSessions > 0 ? Math.round(((currSessions - prevSessions) / prevSessions) * 100) : 0;
-            const pgSrcJson = await ga4Query(token, s.ga4Id, {
-              dateRanges: [{ startDate, endDate }],
-              dimensions: [{ name: "pagePath" }, { name: "sessionDefaultChannelGroup" }],
-              metrics: [{ name: "sessions" }],
-              dimensionFilter: { filter: { fieldName: "pagePath", stringFilter: { value: url, matchType: "EXACT" } } },
-              orderBys: [{ metric: { metricName: "sessions" }, desc: true }],
-            });
-            const pgTotal = (pgSrcJson.rows || []).reduce((s, r) => s + parseInt(r.metricValues[0].value), 0) || 1;
-            const pgSources = (pgSrcJson.rows || []).map((r, i) => ({
-              name: sourceLabels[sourceNames.indexOf(r.dimensionValues[1].value)] || r.dimensionValues[1].value,
-              pct: Math.round(parseInt(r.metricValues[0].value) / pgTotal * 100),
-              color: s.colors.chartColors[i] || "#94a3b8"
-            }));
-            return { url, sessions: currSessions, prevSessions, bounce, avgTime: `${Math.floor(dur / 60)}:${String(dur % 60).padStart(2, "0")}`, trend, decayPct, sources: pgSources, keywords: [] };
+
+            return { url, sessions: currSessions, prevSessions, bounce, avgTime: `${Math.floor(dur / 60)}:${String(dur % 60).padStart(2, "0")}`, trend, decayPct, sources: null, keywords: [], sparkline: null };
           }));
+
+          // Referrals
           const refJson = await ga4Query(token, s.ga4Id, {
             dateRanges: [{ startDate, endDate }],
             dimensions: [{ name: "sessionSource" }],
@@ -421,6 +452,8 @@
             limit: 8,
           });
           const referrals = (refJson.rows || []).map(r => ({ site: r.dimensionValues[0].value, sessions: parseInt(r.metricValues[0].value) }));
+
+          // GSC keywords
           const gscJson = await gscQuery(token, s.gscUrl, {
             startDate, endDate, dimensions: ["query"], rowLimit: 100,
             orderBy: [{ fieldName: "clicks", sortOrder: "DESCENDING" }]
@@ -430,6 +463,8 @@
             kw: r.keys[0], pos: parseFloat(r.position.toFixed(1)),
             clicks: r.clicks, impressions: r.impressions, ctr: parseFloat((r.ctr * 100).toFixed(1))
           }));
+
+          // GSC per-page keywords
           const gscPgJson = await gscQuery(token, s.gscUrl, {
             startDate, endDate, dimensions: ["page", "query"], rowLimit: 200,
             orderBy: [{ fieldName: "clicks", sortOrder: "DESCENDING" }]
@@ -443,13 +478,16 @@
             } catch (e) {}
           });
           pages.forEach(p => { p.keywords = pageKwMap[p.url] || []; });
+
           setData({ summary: { sessions, bounceRate, avgTime, newVsReturn: { new: newPct, returning: 100 - newPct } }, sources, pages, keywords, referrals, dailyData });
         } catch (e) { setError(e.message); }
         finally { setLoading(false); }
       }, [sites]);
+
       useEffect(() => {
         if (authToken) fetchData(authToken, activeSite, period, customFrom, customTo);
       }, [authToken, activeSite, period, customFrom, customTo]);
+
       const fetchTrackedKws = useCallback(async () => {
         if (!authToken || !trackedKws[siteKey]?.length) return;
         setTrackedLoading(true);
@@ -468,9 +506,11 @@
         } catch (e) { console.error(e); }
         finally { setTrackedLoading(false); }
       }, [authToken, activeSite, siteKey, trackedKws, period, customFrom, customTo, sites]);
+
       useEffect(() => {
         if (activeSection === "tracked" && authToken) fetchTrackedKws();
       }, [activeSection, activeSite, period]);
+
       const fetchExplorer = useCallback(async () => {
         if (!authToken || !explorerUrl) return;
         setExplorerLoading(true); setExplorerData(null);
@@ -488,18 +528,87 @@
         } catch (e) { setError(e.message); }
         finally { setExplorerLoading(false); }
       }, [authToken, activeSite, explorerUrl, period, customFrom, customTo, sites]);
+
       const handleAuth = () => {
-        if (!tokenClientRef.current) { setError("Google auth not ready - please wait and try again."); return; }
+        if (!tokenClientRef.current) { setError("Google auth not ready — please wait and try again."); return; }
         setError(null);
         tokenClientRef.current.requestAccessToken();
       };
+
       const addTrackedKw = () => {
         const kw = trackedKwInput.trim().toLowerCase();
         if (!kw || trackedKws[siteKey]?.includes(kw)) return;
         setTrackedKws(prev => ({ ...prev, [siteKey]: [...(prev[siteKey] || []), kw] }));
         setTrackedKwInput("");
       };
-      const allKw = data?.keywords || [];
+
+      const [pageDetails, setPageDetails] = useState({});
+      const [pageDetailLoading, setPageDetailLoading] = useState({});
+
+      const fetchPageDetail = useCallback(async (pageUrl, originalUrl) => {
+        if (!authToken || pageDetails[pageUrl]) return;
+        setPageDetailLoading(prev => ({ ...prev, [pageUrl]: true }));
+        const s = sites[activeSite];
+        const { startDate, endDate } = getDateRange(PERIODS[period].days, customFrom, customTo);
+        const daysDiff = Math.round((new Date(endDate) - new Date(startDate)) / 86400000);
+        const prevEnd = new Date(startDate); prevEnd.setDate(prevEnd.getDate() - 1);
+        const prevStart = new Date(prevEnd); prevStart.setDate(prevStart.getDate() - daysDiff);
+
+        try {
+          // Try both with and without trailing slash
+          const urlVariants = [pageUrl, pageUrl + "/", pageUrl.replace(/\/$/, "")].filter((v, i, a) => a.indexOf(v) === i);
+          
+          // Per-page sources - try each URL variant
+          let pgSources = [];
+          for (const variant of urlVariants) {
+            const pgSrcJson = await ga4Query(authToken, s.ga4Id, {
+              dateRanges: [{ startDate, endDate }],
+              dimensions: [{ name: "pagePath" }, { name: "sessionDefaultChannelGroup" }],
+              metrics: [{ name: "sessions" }],
+              dimensionFilter: { filter: { fieldName: "pagePath", stringFilter: { value: variant, matchType: "EXACT" } } },
+              orderBys: [{ metric: { metricName: "sessions" }, desc: true }],
+            });
+            if (pgSrcJson.rows?.length) {
+              const pgTotal = pgSrcJson.rows.reduce((s, r) => s + parseInt(r.metricValues[0].value), 0) || 1;
+              pgSources = pgSrcJson.rows.map((r, i) => ({
+                name: sourceLabels[sourceNames.indexOf(r.dimensionValues[1].value)] || r.dimensionValues[1].value,
+                pct: Math.round(parseInt(r.metricValues[0].value) / pgTotal * 100),
+                color: s.colors.chartColors[i] || "#94a3b8"
+              }));
+              break;
+            }
+          }
+
+          // Daily sparkline for this page
+          const dailyPgJson = await ga4Query(authToken, s.ga4Id, {
+            dateRanges: [{ startDate, endDate }, { startDate: prevStart.toISOString().split("T")[0], endDate: prevEnd.toISOString().split("T")[0] }],
+            dimensions: [{ name: "date" }, { name: "pagePath" }],
+            metrics: [{ name: "sessions" }],
+            dimensionFilter: { filter: { fieldName: "pagePath", stringFilter: { value: pageUrl, matchType: "CONTAINS" } } },
+            orderBys: [{ dimension: { dimensionName: "date" }, desc: false }],
+          });
+
+          // Build daily map
+          const dailyMap = {};
+          (dailyPgJson.rows || []).forEach(r => {
+            const date = r.dimensionValues[0].value;
+            if (!dailyMap[date]) dailyMap[date] = 0;
+            dailyMap[date] += parseInt(r.metricValues[0].value);
+          });
+          const sparkline = Object.values(dailyMap);
+
+          // Calculate proper trend from sparkline
+          let trend = 0;
+          if (sparkline.length >= 2) {
+            const firstHalf = sparkline.slice(0, Math.floor(sparkline.length / 2)).reduce((a, b) => a + b, 0);
+            const secondHalf = sparkline.slice(Math.floor(sparkline.length / 2)).reduce((a, b) => a + b, 0);
+            trend = secondHalf > firstHalf * 1.05 ? 1 : secondHalf < firstHalf * 0.95 ? -1 : 0;
+          }
+
+          setPageDetails(prev => ({ ...prev, [pageUrl]: { sources: pgSources, sparkline, trend } }));
+        } catch (e) { console.error(e); }
+        finally { setPageDetailLoading(prev => ({ ...prev, [pageUrl]: false })); }
+      }, [authToken, activeSite, period, customFrom, customTo, sites, pageDetails]);
       const filteredKw = allKw.filter(k => k.kw.toLowerCase().includes(kwSearch.toLowerCase())).sort((a, b) => kwSort === "pos" ? a.pos - b.pos : b[kwSort] - a[kwSort]);
       const lowHanging = allKw.filter(k => k.pos >= 4 && k.pos <= 20).sort((a, b) => a.pos - b.pos);
       const decayPages = (data?.pages || []).filter(p => p.decayPct <= -20).sort((a, b) => a.decayPct - b.decayPct);
@@ -510,38 +619,47 @@
       const kannMap = {};
       (data?.pages || []).forEach(p => { (p.keywords || []).forEach(k => { if (!kannMap[k.kw]) kannMap[k.kw] = []; if (!kannMap[k.kw].find(x => x.url === p.url)) kannMap[k.kw].push({ url: p.url, pos: k.pos }); }); });
       const cannibalised = Object.entries(kannMap).filter(([, pages]) => pages.length > 1).map(([kw, pages]) => ({ kw, pages }));
+
       const navItems = [
-        { id: "overview", label: "Overview" },
-        { id: "pages", label: "Top Pages" },
-        { id: "keywords", label: "Keywords" },
-        { id: "tracked", label: "Tracked" },
-        { id: "explorer", label: "Page Explorer" },
-        { id: "opportunities", label: "Opportunities" },
-        { id: "aieo", label: "AIEO" },
+        { id: "overview", label: "📊 Overview" },
+        { id: "pages", label: "📄 Top Pages" },
+        { id: "keywords", label: "🔍 Keywords" },
+        { id: "tracked", label: "📌 Tracked" },
+        { id: "explorer", label: "🔎 Page Explorer" },
+        { id: "opportunities", label: "🎯 Opportunities" },
+        { id: "aieo", label: "🤖 AIEO" },
       ];
+
       return (
         <div style={{ minHeight: "100vh", background: c.bg, color: "#1e293b", transition: "background 0.3s" }}>
           {showSettings && (
-            <SettingsPanel sites={sites} c={c} onSave={(updated) => { setSites(updated); setShowSettings(false); }} onClose={() => setShowSettings(false)} />
+            <SettingsPanel
+              sites={sites}
+              c={c}
+              onSave={(updated) => { setSites(updated); setShowSettings(false); }}
+              onClose={() => setShowSettings(false)}
+            />
           )}
+
+          {/* Header */}
           <div style={{ background: c.primary, padding: "0 24px" }}>
             <div style={{ maxWidth: 1200, margin: "0 auto" }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: 18, paddingBottom: 12 }}>
                 <div>
-                  <h1 style={{ margin: 0, fontSize: 20, fontWeight: 800, color: "#fff" }}>Traffic &amp; SEO Command Centre</h1>
+                  <h1 style={{ margin: 0, fontSize: 20, fontWeight: 800, color: "#fff" }}>📊 Traffic & SEO Command Centre</h1>
                   <p style={{ margin: "2px 0 0", fontSize: 13, color: c.muted }}>{authToken ? `Live data · ${site.label}` : "Sign in with Google to load your data"}</p>
                 </div>
                 <div style={{ display: "flex", gap: 8 }}>
-                  <button onClick={() => setShowSettings(true)} style={{ ...bStyle, background: "rgba(255,255,255,0.15)", color: "#fff", fontSize: 13 }}>Settings</button>
+                  <button onClick={() => setShowSettings(true)} style={{ ...bStyle, background: "rgba(255,255,255,0.15)", color: "#fff", fontSize: 13 }}>⚙️ Settings</button>
                   <button onClick={handleAuth} disabled={!gsiReady && !authToken}
                     style={{ ...bStyle, background: gsiReady || authToken ? c.accent : "#94a3b8", color: "#fff", fontSize: 13, cursor: gsiReady || authToken ? "pointer" : "not-allowed" }}>
-                    {authToken ? "Refresh" : gsiReady ? "Sign in" : "Loading..."}
+                    {authToken ? "🔄 Refresh" : gsiReady ? "🔐 Sign in" : "⏳ Loading..."}
                   </button>
                 </div>
               </div>
               <div style={{ display: "flex", gap: 4 }}>
                 {sites.map((s, i) => (
-                  <button key={s.id} onClick={() => { setActiveSite(i); setExpandedPage(null); setActiveSection("overview"); setData(null); setExplorerData(null); }}
+                  <button key={s.id} onClick={() => { setActiveSite(i); setExpandedPage(null); setActiveSection("overview");         setData(null); setExplorerData(null); setPageDetails({}); setPageDetailLoading({}); }}
                     style={{ padding: "10px 20px", border: "none", background: "none", cursor: "pointer", fontSize: 14, fontWeight: 600, color: activeSite === i ? "#fff" : c.muted, borderBottom: activeSite === i ? `3px solid ${c.accent}` : "3px solid transparent", transition: "all 0.2s" }}>
                     {s.label || `Site ${i + 1}`}
                   </button>
@@ -549,29 +667,33 @@
               </div>
             </div>
           </div>
+
           <div style={{ maxWidth: 1200, margin: "0 auto", padding: "24px" }}>
             {!authToken && !loading && !error && (
               <div style={{ background: "#fff", borderRadius: 16, padding: 48, textAlign: "center", border: `1px solid ${c.accentLight}` }}>
-                <div style={{ fontSize: 48, marginBottom: 16 }}>&#128202;</div>
+                <div style={{ fontSize: 48, marginBottom: 16 }}>📊</div>
                 <h2 style={{ color: c.primary, margin: "0 0 8px" }}>Welcome to your SEO Dashboard</h2>
-                <p style={{ color: "#64748b", margin: "0 0 8px", maxWidth: 440, marginLeft: "auto", marginRight: "auto" }}>First time? Click Settings above to enter your site names, GA4 IDs, and GSC URLs. Then sign in with Google to load your live data.</p>
+                <p style={{ color: "#64748b", margin: "0 0 8px", maxWidth: 440, marginLeft: "auto", marginRight: "auto" }}>First time? Click ⚙️ Settings above to enter your site names, GA4 IDs, and GSC URLs. Then sign in with Google to load your live data.</p>
                 <p style={{ color: "#94a3b8", margin: "0 0 24px", fontSize: 13 }}>Sign in with the Google account that has access to your GA4 and Search Console properties.</p>
                 <div style={{ display: "flex", gap: 12, justifyContent: "center" }}>
-                  <button onClick={() => setShowSettings(true)} style={{ ...bStyle, background: c.primary, color: "#fff", padding: "14px 28px", fontSize: 15 }}>Configure Sites</button>
+                  <button onClick={() => setShowSettings(true)} style={{ ...bStyle, background: c.primary, color: "#fff", padding: "14px 28px", fontSize: 15 }}>⚙️ Configure Sites</button>
                   <button onClick={handleAuth} disabled={!gsiReady}
                     style={{ ...bStyle, background: gsiReady ? c.accent : "#94a3b8", color: "#fff", padding: "14px 28px", fontSize: 15, cursor: gsiReady ? "pointer" : "not-allowed" }}>
-                    {gsiReady ? "Sign in with Google" : "Loading..."}
+                    {gsiReady ? "🔐 Sign in with Google" : "⏳ Loading..."}
                   </button>
                 </div>
               </div>
             )}
+
             {error && <div style={{ background: "#fef2f2", border: "1px solid #fecaca", borderRadius: 10, padding: 20, marginBottom: 20, color: "#dc2626", fontSize: 14 }}><strong>Error:</strong> {error}</div>}
+
             {loading && (
               <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: 60, gap: 16 }}>
                 <div style={{ width: 40, height: 40, border: `4px solid #f1f5f9`, borderTop: `4px solid ${c.primary}`, borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
                 <p style={{ color: "#94a3b8", fontSize: 14 }}>Loading your data...</p>
               </div>
             )}
+
             {(data || ["tracked", "explorer", "aieo"].includes(activeSection)) && authToken && !loading && (
               <>
                 <div style={{ marginBottom: 20 }}>
@@ -590,15 +712,18 @@
                       {period === 3 && (
                         <div style={{ display: "flex", gap: 6, alignItems: "center", marginLeft: 8 }}>
                           <input type="date" value={customFrom} onChange={e => setCustomFrom(e.target.value)} style={{ ...iStyle, width: 140, padding: "6px 10px" }} />
-                          <span style={{ color: "#94a3b8" }}>-</span>
+                          <span style={{ color: "#94a3b8" }}>–</span>
                           <input type="date" value={customTo} onChange={e => setCustomTo(e.target.value)} style={{ ...iStyle, width: 140, padding: "6px 10px" }} />
                         </div>
                       )}
                     </div>
                   )}
                 </div>
+
+                {/* OVERVIEW */}
                 {activeSection === "overview" && data && (
                   <div>
+                    {/* Traffic Graph */}
                     {data.dailyData && data.dailyData.length > 1 && (
                       <Card c={c} style={{ padding: 24, marginBottom: 24 }}>
                         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
@@ -610,13 +735,14 @@
                     )}
                     <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))", gap: 16, marginBottom: 24 }}>
                       {[
-                        { label: "Total Sessions", value: data.summary.sessions.toLocaleString(), icon: "Users" },
-                        { label: "Bounce Rate", value: `${data.summary.bounceRate}%`, icon: "Bounce" },
-                        { label: "Avg. Time on Page", value: data.summary.avgTime, icon: "Time" },
-                        { label: "New Visitors", value: `${data.summary.newVsReturn.new}%`, icon: "New" },
-                        { label: "Returning Visitors", value: `${data.summary.newVsReturn.returning}%`, icon: "Return" },
+                        { label: "Total Sessions", value: data.summary.sessions.toLocaleString(), icon: "👥" },
+                        { label: "Bounce Rate", value: `${data.summary.bounceRate}%`, icon: "↩️" },
+                        { label: "Avg. Time on Page", value: data.summary.avgTime, icon: "⏱️" },
+                        { label: "New Visitors", value: `${data.summary.newVsReturn.new}%`, icon: "✨" },
+                        { label: "Returning Visitors", value: `${data.summary.newVsReturn.returning}%`, icon: "🔁" },
                       ].map((card, i) => (
                         <div key={i} style={{ background: "#fff", borderRadius: 12, padding: "18px 20px", border: `1px solid ${c.accentLight}`, borderTop: `4px solid ${i % 2 === 0 ? c.primary : c.accent}` }}>
+                          <div style={{ fontSize: 22, marginBottom: 6 }}>{card.icon}</div>
                           <div style={{ fontSize: 24, fontWeight: 800, color: c.primary }}>{card.value}</div>
                           <div style={{ fontSize: 13, color: "#94a3b8", marginTop: 2 }}>{card.label}</div>
                         </div>
@@ -646,6 +772,8 @@
                     </div>
                   </div>
                 )}
+
+                {/* TOP PAGES */}
                 {activeSection === "pages" && data && (
                   <Card c={c} style={{ overflow: "hidden" }}>
                     <SectionHeader title="Top Pages" sub="Click any row to see traffic sources and keywords" c={c}
@@ -656,22 +784,30 @@
                       <tbody>
                         {data.pages.map((p, i) => (
                           <React.Fragment key={i}>
-                            <tr onClick={() => setExpandedPage(expandedPage === i ? null : i)}
+                            <tr onClick={() => { setExpandedPage(expandedPage === i ? null : i); if (expandedPage !== i) fetchPageDetail(p.url); }}
                               style={{ cursor: "pointer", borderTop: `1px solid ${c.accentLight}`, background: expandedPage === i ? c.bg : "transparent" }}>
                               <td style={{ padding: "13px 16px", fontSize: 13, color: c.accent, fontWeight: 500, maxWidth: 260, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.url}</td>
                               <td style={{ padding: "13px 16px", fontSize: 14, fontWeight: 700, color: c.primary }}>{p.sessions.toLocaleString()}</td>
                               <td style={{ padding: "13px 16px", fontSize: 13, color: "#64748b" }}>{p.bounce}%</td>
                               <td style={{ padding: "13px 16px", fontSize: 13, color: "#64748b" }}>{p.avgTime}</td>
                               <td style={{ padding: "13px 16px", fontSize: 13, fontWeight: 600, color: p.decayPct < 0 ? "#ef4444" : "#22c55e" }}>{p.decayPct > 0 ? "+" : ""}{p.decayPct}%</td>
-                              <td style={{ padding: "13px 16px" }}><TrendIcon trend={p.trend} /></td>
+                              <td style={{ padding: "13px 16px" }}>
+                                {pageDetails[p.url]?.sparkline ? <Sparkline data={pageDetails[p.url].sparkline} color={c.primary} /> : <TrendIcon trend={p.trend} />}
+                              </td>
                             </tr>
                             {expandedPage === i && (
                               <tr>
                                 <td colSpan={6} style={{ padding: "0 16px 20px", background: c.bg }}>
+                                  {pageDetailLoading[p.url] ? (
+                                    <div style={{ display: "flex", alignItems: "center", gap: 10, padding: 20 }}>
+                                      <div style={{ width: 20, height: 20, border: `3px solid #f1f5f9`, borderTop: `3px solid ${c.primary}`, borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
+                                      <span style={{ fontSize: 13, color: "#94a3b8" }}>Loading page detail...</span>
+                                    </div>
+                                  ) : (
                                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, paddingTop: 16 }}>
                                     <div>
                                       <h4 style={{ margin: "0 0 12px", fontSize: 13, fontWeight: 700, color: c.primary }}>Traffic Sources</h4>
-                                      {p.sources.length === 0 ? <p style={{ fontSize: 13, color: "#94a3b8" }}>No data</p> : p.sources.map((s, j) => (
+                                      {!pageDetails[p.url]?.sources?.length ? <p style={{ fontSize: 13, color: "#94a3b8" }}>No source data found</p> : pageDetails[p.url].sources.map((s, j) => (
                                         <div key={j} style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
                                           <span style={{ fontSize: 13, color: "#475569", width: 80 }}>{s.name}</span>
                                           <MiniBar pct={s.pct} color={s.color || c.primary} />
@@ -697,6 +833,7 @@
                                       )}
                                     </div>
                                   </div>
+                                  )}
                                 </td>
                               </tr>
                             )}
@@ -706,6 +843,8 @@
                     </table>
                   </Card>
                 )}
+
+                {/* KEYWORDS */}
                 {activeSection === "keywords" && data && (
                   <Card c={c} style={{ overflow: "hidden" }}>
                     <SectionHeader title="Keywords Database" sub={`${filteredKw.length} keywords`} c={c}
@@ -736,19 +875,21 @@
                     </table>
                   </Card>
                 )}
+
+                {/* TRACKED KEYWORDS */}
                 {activeSection === "tracked" && (
                   <div>
                     <Card c={c} style={{ padding: 24, marginBottom: 16 }}>
                       <h3 style={{ margin: "0 0 4px", fontSize: 16, fontWeight: 700, color: c.primary }}>Track a Keyword</h3>
-                      <p style={{ margin: "0 0 16px", fontSize: 13, color: "#64748b" }}>Add keywords you're targeting - even ones not in your top 100. Stats are pulled from Search Console each time you visit this tab.</p>
+                      <p style={{ margin: "0 0 16px", fontSize: 13, color: "#64748b" }}>Add keywords you're targeting — even ones not in your top 100. Stats are pulled from Search Console each time you visit this tab.</p>
                       <div style={{ display: "flex", gap: 10 }}>
                         <input value={trackedKwInput} onChange={e => setTrackedKwInput(e.target.value)} onKeyDown={e => e.key === "Enter" && addTrackedKw()} placeholder="e.g. email marketing for beginners" style={{ ...iStyle, flex: 1 }} />
                         <button onClick={addTrackedKw} style={{ ...bStyle, background: c.primary, color: "#fff" }}>+ Add</button>
-                        <button onClick={fetchTrackedKws} style={{ ...bStyle, background: c.accent, color: "#fff" }}>Refresh</button>
+                        <button onClick={fetchTrackedKws} style={{ ...bStyle, background: c.accent, color: "#fff" }}>🔄 Refresh</button>
                       </div>
                     </Card>
                     <Card c={c} style={{ overflow: "hidden" }}>
-                      <SectionHeader title={`Tracked Keywords - ${site.label}`} sub={`${(trackedKws[siteKey] || []).length} keywords tracked`} c={c}
+                      <SectionHeader title={`Tracked Keywords · ${site.label}`} sub={`${(trackedKws[siteKey] || []).length} keywords tracked`} c={c}
                         onExport={() => exportCSV(`tracked-keywords-${site.label}.csv`, ["Keyword", "Position", "Clicks", "Impressions", "CTR"],
                           (trackedKws[siteKey] || []).map(kw => { const d = trackedKwData[kw]; return [kw, d ? d.pos : "Not ranking", d ? d.clicks : 0, d ? d.impressions : 0, d ? `${d.ctr}%` : "0%"]; }))} />
                       {trackedLoading ? (
@@ -760,16 +901,16 @@
                         <table>
                           <TableHead cols={["Keyword", "Position", "Clicks", "Impressions", "CTR", ""]} c={c} />
                           <tbody>
-                            {(trackedKws[siteKey] || []).length === 0 ? <EmptyRow cols={6} msg="No tracked keywords yet - add one above" /> :
+                            {(trackedKws[siteKey] || []).length === 0 ? <EmptyRow cols={6} msg="No tracked keywords yet — add one above" /> :
                               (trackedKws[siteKey] || []).map((kw, i) => {
                                 const d = trackedKwData[kw];
                                 return (
                                   <tr key={i} style={{ borderTop: `1px solid ${c.accentLight}` }}>
                                     <td style={{ padding: "13px 16px", fontSize: 13, fontWeight: 500 }}>{kw}</td>
                                     <td style={{ padding: "13px 16px" }}>{d ? <PosBadge pos={d.pos} colors={c} /> : <span style={{ color: "#94a3b8", fontSize: 12 }}>Not ranking</span>}</td>
-                                    <td style={{ padding: "13px 16px", fontSize: 13, fontWeight: 700, color: c.primary }}>{d ? d.clicks : "-"}</td>
-                                    <td style={{ padding: "13px 16px", fontSize: 13, color: "#64748b" }}>{d ? d.impressions.toLocaleString() : "-"}</td>
-                                    <td style={{ padding: "13px 16px", fontSize: 13, color: "#64748b" }}>{d ? `${d.ctr}%` : "-"}</td>
+                                    <td style={{ padding: "13px 16px", fontSize: 13, fontWeight: 700, color: c.primary }}>{d ? d.clicks : "—"}</td>
+                                    <td style={{ padding: "13px 16px", fontSize: 13, color: "#64748b" }}>{d ? d.impressions.toLocaleString() : "—"}</td>
+                                    <td style={{ padding: "13px 16px", fontSize: 13, color: "#64748b" }}>{d ? `${d.ctr}%` : "—"}</td>
                                     <td style={{ padding: "13px 16px" }}><button onClick={() => setTrackedKws(prev => ({ ...prev, [siteKey]: prev[siteKey].filter(k => k !== kw) }))} style={{ ...bStyle, background: "#fef2f2", color: "#ef4444", padding: "4px 10px", fontSize: 12 }}>Remove</button></td>
                                   </tr>
                                 );
@@ -780,6 +921,8 @@
                     </Card>
                   </div>
                 )}
+
+                {/* PAGE EXPLORER */}
                 {activeSection === "explorer" && (
                   <div>
                     <Card c={c} style={{ padding: 24, marginBottom: 16 }}>
@@ -787,7 +930,7 @@
                       <p style={{ margin: "0 0 16px", fontSize: 13, color: "#64748b" }}>Enter any page path or full URL to see every keyword it ranks for in Search Console.</p>
                       <div style={{ display: "flex", gap: 10 }}>
                         <input value={explorerUrl} onChange={e => setExplorerUrl(e.target.value)} onKeyDown={e => e.key === "Enter" && fetchExplorer()} placeholder="e.g. /blog/my-post or https://www.yoursite.com/blog/my-post" style={{ ...iStyle, flex: 1 }} />
-                        <button onClick={fetchExplorer} style={{ ...bStyle, background: c.primary, color: "#fff" }}>Explore</button>
+                        <button onClick={fetchExplorer} style={{ ...bStyle, background: c.primary, color: "#fff" }}>🔍 Explore</button>
                       </div>
                     </Card>
                     {explorerLoading && <div style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: 40, gap: 12 }}><div style={{ width: 24, height: 24, border: `3px solid #f1f5f9`, borderTop: `3px solid ${c.primary}`, borderRadius: "50%", animation: "spin 0.8s linear infinite" }} /><span style={{ color: "#94a3b8", fontSize: 13 }}>Fetching...</span></div>}
@@ -814,15 +957,17 @@
                     )}
                   </div>
                 )}
+
+                {/* OPPORTUNITIES */}
                 {activeSection === "opportunities" && data && (
                   <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
                     <Card c={c} style={{ overflow: "hidden" }}>
-                      <SectionHeader title="Low Hanging Fruit - Positions 4-20" sub="Close to page 1 or just off the top 3 - optimise these for quick wins" c={c}
+                      <SectionHeader title="🎯 Low Hanging Fruit — Positions 4–20" sub="Close to page 1 or just off the top 3 — optimise these for quick wins" c={c}
                         onExport={() => exportCSV(`low-hanging-fruit-${site.label}.csv`, ["Keyword", "Position", "Clicks", "Impressions", "CTR"], lowHanging.map(k => [k.kw, k.pos, k.clicks, k.impressions, `${k.ctr}%`]))} />
                       <table>
                         <TableHead cols={["Keyword", "Position", "Clicks", "Impressions", "CTR", "Opportunity"]} c={c} />
                         <tbody>
-                          {lowHanging.length === 0 ? <EmptyRow cols={6} msg="No keywords in positions 4-20" /> :
+                          {lowHanging.length === 0 ? <EmptyRow cols={6} msg="No keywords in positions 4–20" /> :
                             lowHanging.map((k, i) => {
                               const opp = k.pos <= 10 ? { label: "Top 3 push", bg: c.primary } : { label: "Page 1 push", bg: c.accent };
                               return (
@@ -839,13 +984,14 @@
                         </tbody>
                       </table>
                     </Card>
+
                     <Card c={c} style={{ overflow: "hidden" }}>
-                      <SectionHeader title="Content Decay - Traffic Dropping 20%+" sub="Pages losing significant traffic vs the previous period - refresh before they fall further" c={c}
+                      <SectionHeader title="📉 Content Decay — Traffic Dropping 20%+" sub="Pages losing significant traffic vs the previous period — refresh before they fall further" c={c}
                         onExport={() => exportCSV(`content-decay-${site.label}.csv`, ["Page", "Current Sessions", "Previous Sessions", "Change"], decayPages.map(p => [p.url, p.sessions, p.prevSessions, `${p.decayPct}%`]))} />
                       <table>
                         <TableHead cols={["Page", "Current Sessions", "Previous Sessions", "Change"]} c={c} />
                         <tbody>
-                          {decayPages.length === 0 ? <EmptyRow cols={4} msg="No significant traffic drops - great news!" /> :
+                          {decayPages.length === 0 ? <EmptyRow cols={4} msg="No significant traffic drops — great news! 🎉" /> :
                             decayPages.map((p, i) => (
                               <tr key={i} style={{ borderTop: `1px solid ${c.accentLight}` }}>
                                 <td style={{ padding: "13px 16px", fontSize: 13, color: c.accent, maxWidth: 300, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.url}</td>
@@ -857,8 +1003,9 @@
                         </tbody>
                       </table>
                     </Card>
+
                     <Card c={c} style={{ overflow: "hidden" }}>
-                      <SectionHeader title="CTR Optimisation - High Impressions, Low Clicks" sub="Google is showing these pages but people aren't clicking - your meta title or description needs work" c={c}
+                      <SectionHeader title="✍️ CTR Optimisation — High Impressions, Low Clicks" sub="Google is showing these pages but people aren't clicking — your meta title or description needs work" c={c}
                         onExport={() => exportCSV(`ctr-optimisation-${site.label}.csv`, ["Keyword", "Position", "Impressions", "Clicks", "CTR"], lowCtrKws.map(k => [k.kw, k.pos, k.impressions, k.clicks, `${k.ctr}%`]))} />
                       <table>
                         <TableHead cols={["Keyword", "Position", "Impressions", "Clicks", "CTR", "Target"]} c={c} />
@@ -877,9 +1024,10 @@
                         </tbody>
                       </table>
                     </Card>
+
                     <Card c={c} style={{ overflow: "hidden" }}>
-                      <SectionHeader title="Keyword Cannibalisation" sub="Multiple pages competing for the same keyword - consolidate or differentiate" c={c} />
-                      {cannibalised.length === 0 ? <p style={{ padding: 24, color: "#94a3b8", fontSize: 13, textAlign: "center" }}>No cannibalisation detected</p> :
+                      <SectionHeader title="⚠️ Keyword Cannibalisation" sub="Multiple pages competing for the same keyword — consolidate or differentiate" c={c} />
+                      {cannibalised.length === 0 ? <p style={{ padding: 24, color: "#94a3b8", fontSize: 13, textAlign: "center" }}>No cannibalisation detected 🎉</p> :
                         cannibalised.map((item, i) => (
                           <div key={i} style={{ padding: "16px 24px", borderTop: `1px solid ${c.accentLight}` }}>
                             <p style={{ margin: "0 0 8px", fontSize: 13, fontWeight: 700, color: c.primary }}>"{item.kw}"</p>
@@ -894,16 +1042,19 @@
                     </Card>
                   </div>
                 )}
+
+                {/* AIEO */}
                 {activeSection === "aieo" && (
                   <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
                     <div style={{ background: "#fff", border: `1px solid ${c.accentLight}`, borderLeft: `4px solid ${c.primary}`, borderRadius: 12, padding: 20 }}>
-                      <h3 style={{ margin: "0 0 6px", fontSize: 15, fontWeight: 700, color: c.primary }}>AI Engine Optimisation (AIEO)</h3>
+                      <h3 style={{ margin: "0 0 6px", fontSize: 15, fontWeight: 700, color: c.primary }}>🤖 AI Engine Optimisation (AIEO)</h3>
                       <p style={{ margin: 0, fontSize: 13, color: "#64748b" }}>Monitor how your content performs in AI-driven search. Track zero-click keywords, question queries, featured snippet opportunities, and log when your pages are cited by AI tools like ChatGPT and Perplexity.</p>
                     </div>
+
                     {data && (
                       <>
                         <Card c={c} style={{ overflow: "hidden" }}>
-                          <SectionHeader title="Zero-Click Keywords" sub="High impressions, zero clicks - likely answered by AI Overviews or featured snippets" c={c}
+                          <SectionHeader title="👻 Zero-Click Keywords" sub="High impressions, zero clicks — likely answered by AI Overviews or featured snippets" c={c}
                             onExport={() => exportCSV(`zero-click-${site.label}.csv`, ["Keyword", "Position", "Impressions"], zeroClickKws.map(k => [k.kw, k.pos, k.impressions]))} />
                           <table>
                             <TableHead cols={["Keyword", "Position", "Impressions", "Clicks"]} c={c} />
@@ -920,8 +1071,9 @@
                             </tbody>
                           </table>
                         </Card>
+
                         <Card c={c} style={{ overflow: "hidden" }}>
-                          <SectionHeader title="Question Keywords" sub="How, what, why, when, who queries - prime targets for AI Overviews." c={c}
+                          <SectionHeader title="❓ Question Keywords" sub="How, what, why, when, who queries — prime targets for AI Overviews. Ensure your content gives a clear direct answer near the top of the page." c={c}
                             onExport={() => exportCSV(`question-keywords-${site.label}.csv`, ["Keyword", "Position", "Clicks", "Impressions", "CTR"], questionKws.map(k => [k.kw, k.pos, k.clicks, k.impressions, `${k.ctr}%`]))} />
                           <table>
                             <TableHead cols={["Keyword", "Position", "Clicks", "Impressions", "CTR"]} c={c} />
@@ -939,8 +1091,9 @@
                             </tbody>
                           </table>
                         </Card>
+
                         <Card c={c} style={{ overflow: "hidden" }}>
-                          <SectionHeader title="Featured Snippet Targets" sub="Ranking positions 1-3 with high impressions but low CTR - restructure your content to win the snippet." c={c}
+                          <SectionHeader title="⭐ Featured Snippet Targets" sub="Ranking positions 1–3 with high impressions but low CTR — someone else likely has the snippet. Restructure your content to win it." c={c}
                             onExport={() => exportCSV(`featured-snippets-${site.label}.csv`, ["Keyword", "Position", "Impressions", "CTR"], featuredSnippetTargets.map(k => [k.kw, k.pos, k.impressions, `${k.ctr}%`]))} />
                           <table>
                             <TableHead cols={["Keyword", "Position", "Impressions", "CTR"]} c={c} />
@@ -959,9 +1112,11 @@
                         </Card>
                       </>
                     )}
+
                     {!data && <div style={{ background: "#fff", border: `1px solid ${c.accentLight}`, borderRadius: 12, padding: 24, textAlign: "center", color: "#94a3b8", fontSize: 13 }}>Sign in and load data to see AIEO keyword insights</div>}
+
                     <Card c={c} style={{ overflow: "hidden" }}>
-                      <SectionHeader title="AI Citation Log" sub="Log when your pages are cited by ChatGPT, Perplexity, Claude, or other AI tools" c={c}
+                      <SectionHeader title="🔗 AI Citation Log" sub="Log when your pages are cited by ChatGPT, Perplexity, Claude, or other AI tools" c={c}
                         onExport={() => exportCSV(`ai-citations-${site.label}.csv`, ["Page URL", "AI Tool", "Query", "Date"], (citations[siteKey] || []).map(c => [c.url, c.tool, c.query, c.date]))} />
                       <div style={{ padding: 24, borderBottom: `1px solid ${c.accentLight}` }}>
                         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
@@ -981,7 +1136,7 @@
                       <table>
                         <TableHead cols={["Page", "AI Tool", "Query", "Date", ""]} c={c} />
                         <tbody>
-                          {(citations[siteKey] || []).length === 0 ? <EmptyRow cols={5} msg="No citations logged yet - start tracking when AI tools cite your content!" /> :
+                          {(citations[siteKey] || []).length === 0 ? <EmptyRow cols={5} msg="No citations logged yet — start tracking when AI tools cite your content!" /> :
                             (citations[siteKey] || []).map((cit, i) => (
                               <tr key={i} style={{ borderTop: `1px solid ${c.accentLight}` }}>
                                 <td style={{ padding: "13px 16px", fontSize: 13, color: c.accent }}>{cit.url}</td>
@@ -1002,6 +1157,7 @@
         </div>
       );
     }
+
     ReactDOM.createRoot(document.getElementById("root")).render(<Dashboard />);
   </script>
 </body>
